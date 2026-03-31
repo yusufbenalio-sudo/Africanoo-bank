@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BankApp - Chad & Nigeria</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        body { background: #f5f5f5; min-height: 100vh; }
+        .container { max-width: 480px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px 20px; border-radius: 0 0 20px 20px; margin-bottom: 20px; }
+        .header h1 { font-size: 24px; margin-bottom: 5px; }
+        .header p { opacity: 0.8; font-size: 14px; }
+        .card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .balance { font-size: 36px; font-weight: bold; color: #333; }
+        .currency { font-size: 16px; color: #666; }
+        .btn { display: block; width: 100%; padding: 15px; background: #667eea; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; margin-bottom: 10px; }
+        .btn-secondary { background: #f0f0f0; color: #333; }
+        .btn-success { background: #10b981; }
+        input { width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 10px; margin-bottom: 10px; font-size: 16px; }
+        .hidden { display: none; }
+        .nav { display: flex; gap: 10px; margin-bottom: 20px; }
+        .nav-btn { flex: 1; padding: 12px; background: white; border: none; border-radius: 10px; font-size: 14px; cursor: pointer; }
+        .nav-btn.active { background: #667eea; color: white; }
+        .service-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .service-item { background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: center; cursor: pointer; }
+        .service-item:hover { background: #e9ecef; }
+        .service-icon { font-size: 24px; margin-bottom: 5px; }
+        .service-name { font-size: 12px; color: #666; }
+        .tx-item { padding: 12px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+        .tx-item:last-child { border-bottom: none; }
+        .tx-type { font-weight: 600; }
+        .tx-amount { font-weight: bold; }
+        .tx-amount.positive { color: #10b981; }
+        .tx-amount.negative { color: #ef4444; }
+        .error { background: #fee2e2; color: #dc2626; padding: 12px; border-radius: 10px; margin-bottom: 10px; }
+        .success { background: #d1fae5; color: #059669; padding: 12px; border-radius: 10px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>💰 BankApp</h1>
+        <p>Chad & Nigeria</p>
+    </div>
+
+    <div class="container">
+        <div id="login-section">
+            <div class="card">
+                <h2 style="margin-bottom: 20px;">Welcome Back</h2>
+                <input type="text" id="login-phone" placeholder="Phone Number">
+                <input type="password" id="login-pin" placeholder="PIN (4 digits)">
+                <button class="btn" onclick="login()">Login</button>
+                <button class="btn btn-secondary" onclick="showRegister()">Create Account</button>
+            </div>
+        </div>
+
+        <div id="register-section" class="hidden">
+            <div class="card">
+                <h2 style="margin-bottom: 20px;">Create Account</h2>
+                <input type="text" id="reg-username" placeholder="Username">
+                <input type="email" id="reg-email" placeholder="Email">
+                <input type="text" id="reg-phone" placeholder="Phone Number">
+                <input type="password" id="reg-pin" placeholder="PIN (4 digits)">
+                <select id="reg-country" style="width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 10px; margin-bottom: 10px;">
+                    <option value="TCD">🇨🇩 Chad (XAF)</option>
+                    <option value="NGA">🇳🇬 Nigeria (NGN)</option>
+                </select>
+                <button class="btn" onclick="register()">Register</button>
+                <button class="btn btn-secondary" onclick="showLogin()">Back to Login</button>
+            </div>
+        </div>
+
+        <div id="app-section" class="hidden">
+            <div class="card">
+                <p style="color: #666; font-size: 14px;">Wallet Balance</p>
+                <div class="balance" id="balance-display">0</div>
+                <div class="currency" id="currency-display">XAF</div>
+            </div>
+
+            <div class="nav">
+                <button class="nav-btn active" onclick="showTab('home')">🏠 Home</button>
+                <button class="nav-btn" onclick="showTab('services')">📱 Services</button>
+                <button class="nav-btn" onclick="showTab('history')">📊 History</button>
+            </div>
+
+            <div id="tab-home">
+                <div class="card">
+                    <h3 style="margin-bottom: 15px;">Add Money</h3>
+                    <input type="number" id="fund-amount" placeholder="Amount">
+                    <button class="btn btn-success" onclick="fundWallet()">💵 Add Money</button>
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom: 15px;">Transfer</h3>
+                    <input type="text" id="transfer-phone" placeholder="Recipient Phone">
+                    <input type="number" id="transfer-amount" placeholder="Amount">
+                    <button class="btn" onclick="transfer()">📤 Transfer</button>
+                </div>
+            </div>
+
+            <div id="tab-services" class="hidden">
+                <div class="card">
+                    <h3 style="margin-bottom: 15px;">Mobile Data</h3>
+                    <div class="service-grid" id="data-plans"></div>
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom: 15px;">Betting</h3>
+                    <div id="betting-matches"></div>
+                </div>
+            </div>
+
+            <div id="tab-history" class="hidden">
+                <div class="card">
+                    <h3 style="margin-bottom: 15px;">Transactions</h3>
+                    <div id="tx-history"></div>
+                </div>
+            </div>
+
+            <button class="btn btn-secondary" onclick="logout()">Logout</button>
+        </div>
+
+        <div id="message"></div>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:5000";
+        let token = localStorage.getItem('token');
+
+        if (token) showApp();
+
+        function showMessage(msg, type = 'error') {
+            document.getElementById('message').innerHTML = '<div class="' + type + '">' + msg + '</div>';
+            setTimeout(() => document.getElementById('message').innerHTML = '', 3000);
+        }
+
+        async function apiCall(endpoint, data) {
+            try {
+                const res = await fetch(API_URL + endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify(data)
+                });
+                return await res.json();
+            } catch (e) {
+                return { error: 'Connection error!' };
+            }
+        }
+
+        async function apiGet(endpoint) {
+            try {
+                const res = await fetch(API_URL + endpoint, { headers: { 'Authorization': 'Bearer ' + token } });
+                return await res.json();
+            } catch (e) {
+                return { error: 'Connection error!' };
+            }
+        }
+
+        function showLogin() {
+            document.getElementById('login-section').classList.remove('hidden');
+            document.getElementById('register-section').classList.add('hidden');
+            document.getElementById('app-section').classList.add('hidden');
+        }
+
+        function showRegister() {
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('register-section').classList.remove('hidden');
+        }
+
+        function showApp() {
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('register-section').classList.add('hidden');
+            document.getElementById('app-section').classList.remove('hidden');
+            loadBalance();
+            loadDataPlans();
+            loadMatches();
+        }
+
+        async function register() {
+            const data = {
+                username: document.getElementById('reg-username').value,
+                email: document.getElementById('reg-email').value,
+                phone: document.getElementById('reg-phone').value,
+                pin: document.getElementById('reg-pin').value,
+                country: document.getElementById('reg-country').value
+            };
+
+            const res = await fetch(API_URL + '/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const json = await res.json();
+
+            if (json.access_token) {
+                token = json.access_token;
+                localStorage.setItem('token', token);
+                showApp();
+            } else {
+                showMessage(json.error || 'Registration failed');
+            }
+        }
+
+        async function login() {
+            const data = {
+                phone: document.getElementById('login-phone').value,
+                pin: document.getElementById('login-pin').value
+            };
+
+            const res = await fetch(API_URL + '/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const json = await res.json();
+
+            if (json.access_token) {
+                token = json.access_token;
+                localStorage.setItem('token', token);
+                showApp();
+            } else {
+                showMessage(json.error || 'Login failed');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            token = null;
+            showLogin();
+        }
+
+        async function loadBalance() {
+            const json = await apiGet('/api/wallet/balance');
+            if (json.wallet_balance !== undefined) {
+                document.getElementById('balance-display').innerText = json.wallet_balance.toLocaleString();
+                document.getElementById('currency-display').innerText = json.currency;
+            }
+        }
+
+        async function fundWallet() {
+            const amount = parseFloat(document.getElementById('fund-amount').value);
+            if (!amount) return showMessage('Enter amount');
+
+            const json = await apiCall('/api/wallet/fund', { amount });
+            if (json.new_balance !== undefined) {
+                showMessage('Money added!', 'success');
+                loadBalance();
+                document.getElementById('fund-amount').value = '';
+            } else {
+                showMessage(json.error);
+            }
+        }
+
+        async function transfer() {
+            const phone = document.getElementById('transfer-phone').value;
+            const amount = parseFloat(document.getElementById('transfer-amount').value);
+            if (!phone || !amount) return showMessage('Enter phone and amount');
+
+            const json = await apiCall('/api/wallet/transfer', { recipient_phone: phone, amount });
+            if (json.new_balance !== undefined) {
+                showMessage('Transfer done!', 'success');
+                loadBalance();
+            } else {
+                showMessage(json.error);
+            }
+        }
+
+        async function loadDataPlans() {
+            const json = await apiGet('/api/services/data-plans');
+            if (json.plans) {
+                document.getElementById('data-plans').innerHTML = json.plans.map(p => 
+                    '<div class="service-item" onclick="buyData(' + p.id + ', \'' + p.name + '\', ' + p.price + ')">' +
+                    '<div class="service-icon">📱</div><div class="service-name">' + p.name + '<br>' + json.currency + ' ' + p.price + '</div></div>'
+                ).join('');
+            }
+        }
+
+        async function buyData(planId, name, price) {
+            const phone = prompt("Enter phone for data:");
+            if (!phone) return;
+
+            const json = await apiCall('/api/services/buy-data', { plan_id: planId, phone_number: phone });
+            if (json.new_balance !== undefined) {
+                showMessage('Data purchased!', 'success');
+                loadBalance();
+            } else {
+                showMessage(json.error);
+            }
+        }
+
+        async function loadMatches() {
+            const json = await apiGet('/api/services/betting/matches');
+            if (json.matches) {
+                document.getElementById('betting-matches').innerHTML = json.matches.map(m => 
+                    '<div style="padding: 10px; margin-bottom: 10px; background: #f8f9fa; border-radius: 10px;">' +
+                    '<div style="font-weight: 600; margin-bottom: 8px;">' + m.home + ' vs ' + m.away + '</div>' +
+                    '<div style="display: flex; gap: 5px;">' +
+                    '<button class="btn btn-secondary" style="padding: 8px;" onclick="placeBet(' + m.id + ', \'home_win\', ' + m.home_win + ')">1 (' + m.home_win + ')</button>' +
+                    '<button class="btn btn-secondary" style="padding: 8px;" onclick="placeBet(' + m.id + ', \'draw\', ' + m.draw + ')">X (' + m.draw + ')</button>' +
+                    '<button class="btn btn-secondary" style="padding: 8px;" onclick="placeBet(' + m.id + ', \'away_win\', ' + m.away_win + ')">2 (' + m.away_win + ')</button>' +
+                    '</div></div>'
+                ).join('');
+            }
+        }
+
+        async function placeBet(matchId, selection, odds) {
+            const amount = parseFloat(prompt('Enter bet amount:'));
+            if (!amount) return;
+
+            const json = await apiCall('/api/services/place-bet', { match_id: matchId, selection, amount });
+            if (json.new_balance !== undefined) {
+                showMessage('Bet placed! Potential win: ' + json.potential_win, 'success');
+                loadBalance();
+            } else {
+                showMessage(json.error);
+            }
+        }
+
+        function showTab(tab) {
+            document.getElementById('tab-home').classList.add('hidden');
+            document.getElementById('tab-services').classList.add('hidden');
+            document.getElementById('tab-history').classList.add('hidden');
+            document.getElementById('tab-' + tab).classList.remove('hidden');
+
+            if (tab === 'history') loadHistory();
+        }
+
+        async function loadHistory() {
+            const json = await apiGet('/api/wallet/transactions');
+            if (json.transactions) {
+                document.getElementById('tx-history').innerHTML = json.transactions.map(t => 
+                    '<div class="tx-item"><div><div class="tx-type">' + t.type + '</div><div style="font-size: 12px; color: #666;">' + (t.description || '') + '</div></div>' +
+                    '<div class="tx-amount ' + (t.type === 'deposit' || t.type === 'transfer' ? 'positive' : 'negative') + '">' +
+                    (t.type === 'deposit' || t.type === 'transfer' ? '+' : '-') + t.amount + ' ' + t.currency + '</div></div>'
+                ).join('') || '<p style="color: #666;">No transactions</p>';
+            }
+        }
+    </script>
+</body>
+</html>
